@@ -1,0 +1,5 @@
+"0",""
+"0","MTCARS <- mtcars|> select(mpg, am, vs, gear, carb, cyl) #변수의 선택 "
+"0","MTCARS |> jjstat::revcode(n=12, ""cyl"") |>"
+"0",""
+"0","  head()"

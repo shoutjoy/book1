@@ -1,0 +1,7 @@
+"0","nortest::ad.test(c(6, 1, -4, 8, -2, 5, 1, 3)) |>
+  jjstat::report_stat(trans = FALSE)
+"
+"1","[1]"
+"1"," ""Anderson-Darling normality test showed that the normality was secured by rejecting the alternative hypothesis because it was not statistically significant. statistic = 0.162, p = 0.912)"""
+"1","
+"

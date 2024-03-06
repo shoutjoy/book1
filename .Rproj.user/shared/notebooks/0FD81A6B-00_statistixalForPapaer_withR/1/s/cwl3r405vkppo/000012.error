@@ -1,0 +1,1 @@
+{"frames":[{"func":"df_long %>% group_by(name) %>% summarize(N = n())","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0},{"func":"summarize(., N = n())","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"summarize(., N = n())에서 다음과 같은 에러가 발생했습니다:\n  기본값이 없는 인수 \"by\"가 누락되어 있습니다\n"}

@@ -1,0 +1,6 @@
+"0","ks.test(ksdata, ""pnorm"") |>"
+"0","  jjstat::report_stat()"
+"1","[1]"
+"1"," ""Exact one-sample Kolmogorov-Smirnov test showed that the normality was secured by rejecting the alternative hypothesis because it was not statistically significant. statistic = 0.429, p = 0.111)"""
+"1","
+"

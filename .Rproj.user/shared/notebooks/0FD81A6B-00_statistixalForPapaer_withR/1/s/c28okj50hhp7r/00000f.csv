@@ -1,0 +1,4 @@
+"0","#group split####"
+"0","#그룹을 순서대로 정리 "
+"0","epal_grp <- Erotic_picture_love %>% arrange(Gender, Condition)"
+"0","epal_grp"

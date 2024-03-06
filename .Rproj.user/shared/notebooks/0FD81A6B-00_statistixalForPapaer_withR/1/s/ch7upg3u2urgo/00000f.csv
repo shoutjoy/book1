@@ -1,0 +1,3 @@
+"0","#롱데이터로 변경 "
+"0","df_long <- reshape2::melt(df, id.vars = c(""id"",""type"")) "
+"0","df_long "

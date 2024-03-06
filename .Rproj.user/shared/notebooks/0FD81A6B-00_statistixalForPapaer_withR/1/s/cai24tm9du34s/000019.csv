@@ -1,0 +1,8 @@
+"0","#  Pairwise Deletion"
+"0","cbind.data.frame("
+"0","      method =c(""raw_data"",""Listwise Deletion"",""Pairwise Deletion""),  "
+"0","      N = c(nrow(sleep),nrow(sleep_all) ,nrow(sleep_partial)),"
+"0","      Cor = c(""Failure to calculate."","
+"0","              round(cor_all, 3), "
+"0","              round(cor_partial, 3) )"
+"0",")"

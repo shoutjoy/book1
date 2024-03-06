@@ -1,0 +1,3 @@
+"0","worldcup_sep <- jjstat::worldcup |> "
+"0","  tidyr::separate(goal, into = c(""vip_goal"", ""total_goal""), sep =""/"")"
+"0","worldcup_sep"

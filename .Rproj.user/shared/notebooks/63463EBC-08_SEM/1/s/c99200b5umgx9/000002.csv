@@ -1,0 +1,15 @@
+"0","```r
+library(semPlot)
+  library(semptools)
+
+semPaths(rfit, what=\"est\", fade=F, posCol=\"gray30\",
+         nCharNodes = 10, edge.label.cex = 1.4, 
+         sizeMan = 10, residScale = 15,
+         style=\"lisrel\", rotation = 2,
+         layout = matrix(c(
+           NA,\"mother\",NA,
+           \"father\",NA,\"child\"
+         ), byrow = T, ncol = 3, nrow = 2),
+         mar=c(5,5,8,5)
+         ) %>%mark_sig(rfit) %>% plot()
+```"

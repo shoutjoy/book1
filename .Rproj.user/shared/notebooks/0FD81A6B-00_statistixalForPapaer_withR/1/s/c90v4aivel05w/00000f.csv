@@ -1,0 +1,8 @@
+"0","df_long1 = reshape(df, "
+"0","        idvar=c(""id"", ""type""), #유지할 데이터"
+"0","        varying = list(3:5), # value가 될 변수 "
+"0","        timevar = ""variable"",  #value가 된 column"
+"0","        v.name = ""score"", # value의 명칭"
+"0","        direction ='long')     "
+"2","data[, idvar]에서 다음과 같은 에러가 발생했습니다:객체의 타입 'closure'는 부분대입할 수 없습니다
+"

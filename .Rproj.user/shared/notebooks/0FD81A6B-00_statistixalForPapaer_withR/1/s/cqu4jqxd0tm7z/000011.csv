@@ -1,0 +1,3 @@
+"0","anovaTableData <-anovaData %>% "
+"0","  dplyr::select(6:13) %>% unique()"
+"0","anovaTableData"

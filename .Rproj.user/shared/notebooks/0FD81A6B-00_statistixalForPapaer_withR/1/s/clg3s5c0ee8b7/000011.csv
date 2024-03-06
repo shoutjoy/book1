@@ -1,0 +1,3 @@
+"0","#frequency analysis : default option "
+"0","library(forcats)"
+"0","forcats::fct_count(mtcars$am)"

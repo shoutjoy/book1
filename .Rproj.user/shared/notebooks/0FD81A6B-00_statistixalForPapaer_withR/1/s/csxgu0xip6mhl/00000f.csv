@@ -1,0 +1,4 @@
+"0","mtcars |> "
+"0","  transform(mean_hp_wt = (hp + wt)/2 ) |>"
+"0","  subset(select=c(mpg, hp, wt, mean_hp_wt)) |>"
+"0","  head(10)"

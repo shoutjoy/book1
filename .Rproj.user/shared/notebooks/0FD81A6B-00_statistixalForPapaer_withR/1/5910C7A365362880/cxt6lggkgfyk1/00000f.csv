@@ -1,0 +1,4 @@
+"0","library(semPlot)"
+"0","semPaths(fa, what=""est"", residuals=FALSE,"
+"0","         cut=0.3, posCol=c(""white"", ""darkgreen""), negCol=c(""white"", ""red""),"
+"0","         edge.label.cex=0.75, title=TRUE)"

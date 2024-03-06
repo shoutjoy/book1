@@ -1,0 +1,7 @@
+"0","# jjstat::Describe(y ~ trt, data = fuel)"
+"0",""
+"0","## same method "
+"0","# fuel |> mysummaryBy(formula = y~ trt)"
+"0",""
+"0","#다른방법 psych패키지 적용"
+"0","# psych::describeBy(fuel ~ trt)"

@@ -1,0 +1,7 @@
+"0","semPaths(fa, what=""est"", residuals=FALSE,
+         cut=0.3, posCol=c(""white"", ""darkgreen""), negCol=c(""white"", ""red""),
+         edge.label.cex = 1, title=TRUE)
+"
+"2","semPaths(fa, what = ""est"", residuals = FALSE, cut = 0.3, posCol = c(""white"", 에서 다음과 같은 에러가 발생했습니다:
+  함수 ""semPaths""를 찾을 수 없습니다
+"

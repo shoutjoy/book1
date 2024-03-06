@@ -1,0 +1,7 @@
+"0"," ##plot "
+"0","emmip.data <- emmeans::emmip(epal.lm, Condition ~ Gender )"
+"0","#CIs"
+"0","emmeans::emmip(epal.lm, "
+"0","               Condition ~ Gender, "
+"0","               CIs=TRUE )+ "
+"0","  geom_text(aes(y = yvar + 0.1, label = round(yvar , 2)), hjust = -.5)"

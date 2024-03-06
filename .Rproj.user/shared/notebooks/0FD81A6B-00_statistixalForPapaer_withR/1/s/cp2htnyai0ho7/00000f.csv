@@ -1,0 +1,5 @@
+"0","# transform(airquality, Ozone = -Ozone)"
+"0","#Ozone은 new변수로 마이너스를 붙여서 생성 "
+"0","# F(Fahrenheit )   -> C(Celsius)  = (F-32)/1.8"
+"0","transform(airquality, new = -Ozone, C_Temp = (Temp-32)/1.8) |>"
+"0","  head()"

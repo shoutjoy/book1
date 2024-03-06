@@ -1,0 +1,4 @@
+"0","library(sjPlot)"
+"0","sjp.fa(olympic$tab)"
+"2","sjp.fa(olympic$tab)에서 다음과 같은 에러가 발생했습니다:함수 ""sjp.fa""를 찾을 수 없습니다
+"

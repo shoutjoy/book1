@@ -1,0 +1,8 @@
+"0",""
+"0","#group mean "
+"0","grp_mean = ave(df_long$value, df_long$name) %>% "
+"0","  unique()%>% "
+"0","  data.frame() %>%  "
+"0","  `rownames<-`(c(""a1_mean"",""a2_mean"",""a3_mean"")) %>% "
+"0","  `colnames<-`(c(""mean.value""))"
+"0","grp_mean"

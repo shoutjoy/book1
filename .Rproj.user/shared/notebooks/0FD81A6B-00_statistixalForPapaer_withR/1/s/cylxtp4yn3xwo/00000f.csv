@@ -1,0 +1,4 @@
+"0","df_long <-  df1 |>"
+"0","  pivot_longer(cols = c(a1,a2,a3)) |>"
+"0","  arrange(name)"
+"0","df_long"

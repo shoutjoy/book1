@@ -1,0 +1,8 @@
+"0",""
+"0","# n = df_long %>% "
+"0","#        group_by(name) %>% "
+"0","#         summarize(N= n())"
+"0","# n"
+"0","        "
+"0","n = aggregate(data=df_long, value ~ name, length)"
+"0","n"
