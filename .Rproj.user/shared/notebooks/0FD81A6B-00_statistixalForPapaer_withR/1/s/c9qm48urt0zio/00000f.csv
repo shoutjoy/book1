@@ -1,4 +1,0 @@
-"0",""
-"0","contrast(epal.em,contr,adjust = ""none"") %>%"
-"0","                confint()%>% "
-"0","                 confint_mark_sig()"

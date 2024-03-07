@@ -1,5 +1,0 @@
-"0","df_long = df_1%>% "
-"0","		tidyr::pivot_longer(names_to =""time"", "
-"0","						cols= -subject)"
-"2","에러: 객체 'df_1'를 찾을 수 없습니다
-"

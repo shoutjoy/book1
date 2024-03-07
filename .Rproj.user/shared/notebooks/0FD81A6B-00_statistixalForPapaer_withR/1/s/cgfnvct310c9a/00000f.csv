@@ -1,7 +1,0 @@
-"0","epal.plot <-  Erotic_picture_love %>% "
-"0","              group_by(Gender,Condition) %>%"
-"0","             summarise(AP.Mean = mean(AveragePleasantness), "
-"0","                       SD = sd(AveragePleasantness), "
-"0","                       N=n())"
-"2","`summarise()` has grouped output by 'Gender'. You can override using the `.groups` argument."
-"0","epal.plot"
