@@ -1,4 +1,0 @@
-"0","library(GPArotation)"
-"0","fa.o <- factanal(olympic$tab, factors=2, scores=""regression"", rotation = ""oblimin"")"
-"2","에러: 객체 'olympic'를 찾을 수 없습니다
-"

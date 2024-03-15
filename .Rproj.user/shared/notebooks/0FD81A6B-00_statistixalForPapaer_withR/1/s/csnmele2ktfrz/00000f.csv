@@ -1,5 +1,0 @@
-"0","# MTCARS <- mtcars|> select(mpg, am, vs, gear, carb, cyl) "
-"0","jjstat::revcode(MTCARS,"
-"0","                n = c(12, 6, 9), # 역코딩 계수"
-"0","                ""cyl"",""gear"",""carb"") |> #역코딩할 변수"
-"0","  head(10)"

@@ -1,2 +1,0 @@
-"0","jjstat::worldcup |> "
-"0","  tidyr::separate(year, into = c(""century"", ""year""), sep = 2, convert = TRUE)"

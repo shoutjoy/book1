@@ -1,6 +1,0 @@
-"0","library(tidyverse)"
-"0",""
-"0","mtcars |> "
-"0","   mutate(cyl_reverse = 12- cyl) |>"
-"0","   select(cyl, cyl_reverse) |> "
-"0","   head(n= 10)"

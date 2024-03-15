@@ -5302,15 +5302,15 @@ skull_manova[[4]]
   
 heplot은 다음과 같은 시각화를 제공하는데, Scatterplot은 두 변수 간의 관계를 시각화하여 각 시대별로 어떻게 변화하는지 확인한다. heplot (Hypothesis Ellipses)은 다변량 분산 분석에서 사용된 선형 및 이차적인 효과를 시각화하는데 사용한다. 이를 통해 시대별로 변수들이 어떻게 변화하는지 확인할 수 있다. 
 ```{r fig.width= 8, fig.height=8}
-heplot(manova(cbind(mb,bh,bl,nh)~ epoch, data=Skulls))
+heplots::heplot(manova(cbind(mb,bh,bl,nh)~ epoch, data=Skulls))
 ```
 
 
 ```{r, fig.width= 8, fig.height=8}
 # HE plots
-heplot(manova(cbind(mb, bh, bl, nh) ~ epoch, data=Skulls), 
-       hypotheses=list(Lin="epoch.L", Quad="epoch.Q"), 
-       xlab=vlab[1], ylab=vlab[2])
+heplots::heplot(manova(cbind(mb, bh, bl, nh) ~ epoch, data=Skulls), 
+       hypotheses=list(Lin="epoch.L", Quad="epoch.Q"))
+       # xlab=vlab[1], ylab=vlab[2])
 ```
 이번에는 pair함수를 이용하여 다변량 데이터를 시각화해보자.   
  
@@ -5395,9 +5395,202 @@ manova(cbind(tear, gloss, opacity) ~ rate * additive, data=Y) %>%
 
 ## 4.6. ANCOVA 공분산 분석
 \
+공분산 분석은 공변량을 추가로 모형에 투입하여 공변량이 결과변수에 미치는 효과를 통제하는 확장된 분산분석의 일종이다(김영석, 2017). 
+
+공변량은 결과변수와 상관관계를 맺고 있다고 가정되어야 하며, 공변량과 결과변수의 관계는 실험집단에 따라 다르지 않다고 가정이 되어야 한다. 그리고 공변량은 분산분석에 투입되는 독립변수들과 독립적 관계를 가진다고 가정이 되어야 한다. 즉, 예측변수들과는 상관관계가 맺지 않는다는 가정하에 분석이 된다. 
+
+이러한 가정하에는 공변량이 결과변수에 미치는 효과는 요인이 종속변수에 미치는 효과와 독립적이라고 할 수 있다. 공분산 분석은 분산분석에 연속형 변수를 추가한 것이다. 분산분석과 방법은 동일하지만 통제가 안되는 연속형변수(공변량)을 추가하여 오차를 줄이고 검정력을 높이는 방법이다.
+
+공분산 분석을 하려면 몇가지 가정에 대하여 충족하는지 알아보는 것이 필요하다.  실험이 잘 통제된 공간에서는 분산분석을 이용하여 요인을 가지고 결과변수를 설명할 수 있을 것이다. 그러나 실제로는 사회과학에서 그러한 통제는 쉽지 않기 때문에 다른 변인을 통제하여 조사하고자 하는 변수만의 효과를 검정하게 된다.   
+
+공분산 분석은 분산분석에 연속형 변수를 추가하는 것이다. 궁극적인 목적은 각 그룹간 평균들의 차이가 있는지 검정하는 것이지만, 통제가 안되는 연속형 변수(covariate)를 추가하여 오차를 졸이고 검정력을 높이는 것이다(안재형, 2011).  
+
+
+### 4.6.1. 분석데이터의 시각화    
+사용할 자료는 moomBook 패키지의 acs데이터를 활용하고자 한다.
+
+857명의 인구통계학적 데이터와 실험실 데이터가 포함된 데이터 세트. 
+급성 관상동맥 증후군(ACS) 환자의 인구통계학적 데이터가 포함된 데이터 세트이다. 
+
+주요 변수는 다음과 같다.    
+  BMI : body mass index in kg/m2   
+  smoking : history of smoking, One of the followings : "Never","Ex-smoker","Smoker"   
+  
+
+```{r}
+acs <- moonBook::acs
+acs$smoking<-factor(acs$smoking, levels = c("Never","Ex-smoker","Smoker"))
+acs %>% str()
+
+```
+
 \
-\
-\
+그룹별 기술통계 
+```{r}
+mysummaryBy(age ~ smoking, data = acs)[1:4] %>% 
+  Round(2)
+
+#같은 결과에 대한 다른 방법 
+# # acs %>% group_by(smoking) %>%
+#            summarise(M = mean(age),
+#                      SD = sd(age),
+#                      N = n())
+
+
+```
+
+
+ 평균비교 그래프 
+
+평균비교 그래프는 다음과 같다. smoking변수에서 Smoker가 심근경색에 걸리는 나이가 제일 어린 것으로 나타나고 있다. 이대로라면 담배를 끊는게 병에 안걸릴 확률이 높다고 말할 수 있을 듯 하다. 
+
+```{r}
+#흡연에 따른 그래프 #####
+library(ggplot2)
+ggplot(acs, aes(x=smoking, y=age,fill=smoking))+geom_boxplot()
+
+```
+
+이를 막대그래프로 표준오차를 설정하여 표현한 것이다.  
+  
+
+```{r}
+ggplot(acs, aes(x=smoking, y=age,fill=smoking))+
+  stat_summary(fun="mean", geom="bar",position="dodge")+
+  stat_summary(fun.data = mean_se, geom = "errorbar", position="dodge",width=.8)
+
+
+```
+
+
+### 4.6.2. 공분산 분석을 위한 가정
+
+
+ 산점도와 선형성 가정 linearity assumption
+
+종속변수와 공변량은 서로 선형성이 존재해야 한다 
+
+
+
+먼저 산점도를 보자. 
+
+
+```{r fig.width=8, fig.height=6}
+#linearity assumption ####
+# plot(age~BMI, data = acs, 
+#      pch=21, 
+#      bg=adjustcolor(c("red","green","blue")[acs$smoking],alpha=0.2))
+ggplot(acs, aes(x=BMI, y=age, color=smoking))+
+        geom_point()+
+        # geom_smooth(method="lm", se= FALSE ,fill="gray80")+
+  labs(title = "BMI별 급성곤동맥 증후군 발생 나이(age)")+
+  theme_minimal()
+
+
+```
+
+고밀도로 퍼저있다는 것을 알 수 있다. 그냥 봐서는 선형성이 잘 보이지 않고 있다. 
+ggplot을 이용하여 선형성을 표시할 수 있다. 종속변수와 공변량의 관계를 가지고 선형성을 표시하는게 필요하다. 이를 그리려면 많은 시간이 소요되는데, 일단은 ggplot로 원하는 그림을 좀 더 빠르게 그려진다. 
+
+```{r}
+# ggplot 
+ggplot(acs, aes(x=BMI, y=age, color=smoking))+
+        geom_point()+
+        geom_smooth(method="lm", se= FALSE ,fill="gray80")+
+  labs(title = "BMI별 급성곤동맥 증후군 발생 나이(age)")+
+  theme_minimal()
+```
+
+회귀기울기의 동질성 
+
+요인과 공변량은 서로 상호작용이 없다는 것을 확인해주어야 한다. 
+
+```{r}
+lm(age ~ smoking*BMI, acs) %>% rstatix::Anova(type=3)
+```
+
+There was homogeneity of regression slopes as the interaction term was not statistically significant, F(1,758) =.64, p =.53.  
+
+
+ 잔차의 정규성 
+
+ 회귀분석
+
+```{r}
+#잔차의 정규성 ######
+fit1 <- lm(age ~ BMI+ smoking, acs)
+fit1 %>% summary()
+
+```
+적합치와 잔차분석 
+```{r}
+
+#적합치와 잔차를 분석 broom- augment 
+model.metrics <- broom::augment(fit1) %>% 
+  dplyr::select(-.hat, -.sigma) #remove detail 
+model.metrics
+```
+
+
+
+```{r}
+library(rstatix)
+
+#공분산 분석 
+res.aov <- acs%>% anova_test(age ~ BMI + smoking)
+res.aov   # 아래의 결과와 동일 
+get_anova_table(res.aov) # 분석결과 table 
+
+
+```
+결과보고
+
+ 공분산 분석결과 BMI지수는 심근경색발병나이(age)와 관련이 있으며, BMI를 통제한 상태에서 흡연의 유무(smoking)가  심근경색 발병나이에 영향을 미쳤다. ,  F(1, 760) = 42.52, p <  .001.  
+ 
+ 
+ 사후분석 
+ 
+```{r}
+# Pairwise comparisons
+pwc <- acs %>% 
+  emmeans_test(
+    age ~ smoking, covariate = BMI,
+    p.adjust.method = "bonferroni"
+  )
+pwc
+
+```
+ 
+ 결과보고
+
+심근경색 발병나이는 금연자(EX)와  비흡연자(Never)는 유의미한 차이가 나타나지 않았다, t(760) =1.09, p = .27. 비흡연자와 흡연자는 심근경색 발병나이는 유의미한 차이가 발생하였다, t(760) =9.02, p = .001. 즉 비흡연자는 흡연자에 비해 심근경색 발병이 9년늦게 나타났다. 금연자와 비흡연자는 심근경색 발병이  유의미한 차이를 나타내었다, t(760) = 6.68, p < .001. 즉 금연자는 흡연자에 비해 심근경색 발병이 6.68년 늦게 나타났다.   
+
+  
+estimated marginal means   
+ 
+```{r}
+get_emmeans(pwc)
+```
+
+ANCOVA 시각화  
+
+```{r fig.width= 8, fig.height=6}
+library(ggpubr)
+# Visualization: line plots with p-values
+# Visualization: line plots with p-values
+
+pwc <- pwc %>% add_xy_position(x = "smoking", fun = "mean_se")
+
+ggline(get_emmeans(pwc), x = "smoking", y = "emmean") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) + 
+  stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc)
+  )
+
+```
+
 
 
 ## 4.7. Chi-square test
@@ -5411,7 +5604,7 @@ manova(cbind(tear, gloss, opacity) ~ rate * additive, data=Y) %>%
 
 # 5. 연관성을 이용한 분석  
 \
-\
+상관분석 
 \
 
 ## 5.1.  Correlation
@@ -5424,7 +5617,8 @@ manova(cbind(tear, gloss, opacity) ~ rate * additive, data=Y) %>%
 ### 5.1.1. 상관계수
 
 상관계수는 cor()을 이용하여 상관계수를 찾는다.\
-두 개의 변수를 지정하면 두 변수 사이의 관계가 나타난다.
+두 개의 변수를 지정하면 두 변수 사이의 관계가 나타난다.  
+
 
 ```{r}
 cor(mtcars$mpg, mtcars$hp)
@@ -5778,9 +5972,524 @@ ggpairs(mtcars[,1:7],
 
 ## 5.2. Regression
 
-### 5.2.1. OLS 회귀분석
+### 5.2.1. 회귀분석에 대한 이해   
 
-### 5.2.2.로지스틱 회귀분석
+```{r}
+x = c(1,2,3,4)
+y = c(2,3,5,4)
+
+plot(x,y,pch=20, col="red")  #type="o" 추가하면 선 연결 
+abline(lm(y~x))
+title(main="최소제곱의 이해", font.main=4)
+```
+
+
+```{r}
+x=c(1,2,3,4)
+y=c(2,3,5,4)
+
+f <-  function(inp){
+  a= inp[1]
+  b= inp[2]
+  t= a*x+b
+  sum((y-t)^2)
+}
+
+optim(c(1,1),f) #초기값 (a,b)=(1,1)로 시작해서 f를 최소화 하라
+```
+$par에 해당하는 부분은 바로 y ~ 0.8x +1.5 이다.   
+이것을 회귀분석을 해보면 명확하게 나타나고 알 수 있다. (lm(y~x)가 회귀분석)
+
+임의로 만든 값이므로 p값이 유의미하지는 않다. 
+
+독립변수에 해당하는 x=c(1,2,3,4)는 오차가 없지만 종속변수인 c(2,3,5,4)는 오차를 포함한 값이다. 
+
+
+
+```{r fig.width=6, fig.height=6}
+#임의의 회귀 계수 분석 
+set.seed(123)
+독립변수=rnorm(40)
+종속변수=rnorm(40)
+plot(독립변수,종속변수, pch=16, main = cor(독립변수,종속변수))
+abline(lm(종속변수~독립변수),lwd=2, col=2)
+```
+강의 양의 상관을 만들어 보자.   
+```{r fig.width=6, fig.height=6}
+set.seed(1)
+a=rnorm(100); b=rnorm(100); c=rnorm(100)
+x=(a+b)/sqrt(2)
+y=(b+c)/sqrt(2)
+plot(x,y,pch=16) #좌표그리기
+abline(0,1,lty=2,lwd=2, col=4) # 추세선 
+abline(lm(y~x),col=2,lwd=2)  # 회귀직선
+title(main="평균으로의 회귀(Regression to the mean)")
+```
+
+#### 5.2.1.1. 선형회귀분석   
+
+galton(부모의 키와 자식의 키)   
+
+X(부모성적)와  Y(자식성적)의 상관이 완전하지 않기 때문에, 부모성적과 자식의 성적이 같아지는 것, 즉  y=x가 되지 않고 오히려 평균 y=0에 가까워진다. 
+
+이러한 현상을 프랜시스 골턴(Sir Francis Galton, 1822-1911)이 발견한 '평균으로의 회귀(regression th the mean)'이다. 여기에서 회귀(regression, 제자리로 돌아가는 것)이라는 단어가 유래했다 평균으로 회귀란 점점 수평에 가까운 직선이 되는 것을 말한다. 
+
+```{r}
+library(UsingR)
+str(galton)
+
+```
+
+이 자료는 플란시스 골턴의 928개의 부모의 키와 아이의 키에 대한 자료이다. 부모의 키는 아빠의 키와 엄마의 키의 산술평균값이다.   
+
+```{r}
+galton.im = lm(child ~ parent, data=galton)
+ galton.im%>% summary()
+
+```
+y= 0.65x+23.94로 부모의 키에 의해 자녀의 키가 결정된다고 나오고 있다.   
+
+```{r fig.width=6, fig.height=6}
+plot(child ~ parent, data=galton)
+abline(galton.im,lwd=3, col=2)
+```
+
+plot()에 회귀결과값을 넣으면 4가지를 확인한 그래프를 그려준다.   
+
+```{r fig.width=8, fig.height=8}
+par(mfrow=c(2,2))
+plot(galton.im)
+```
+#### 5.2.1.2. weman (여성의 키와 몸무게 데이터)
+
+30세부터 39세까지 미국 여성 15명이 키와 몸무게 데이터이다. 
+키는 인치, 몸무게는 파운드이다. 
+
+```{r}
+women
+```
+
+선형 회귀분석   
+```{r}
+fit <- lm(weight ~ height, data=women)
+fit
+
+```
+
+
+```{r}
+summary(fit)
+
+```
+Coefficients를 보면 y절편이 되는 intercept는 -87.52이고 height는 3.45이다.  p- value를 보면 p<.001로  유의하게 나온다.  이를 통해서 나타나는 관계는 weight =-87.52 +3.45*height이다.   
+* Residual stadard error이라는 것은 이 모형을 사용하여 몸무게를 예측하면 1.525파운드의 오차가 있다는 의미이다.   
+* Multiple R- squared 0.991은 상관계수의 계곱을 말한다. 또한 이 값은 이 모형이 몸무게를 나타내는 분산을 99.1%를 설명해준다는 의미이다. 
+
+```{r}
+cor(women$weight, women$height)  #상관계수 
+
+```
+
+```{r}
+(cor(women$weight, women$height)^2)    #상관계수의 제곱
+
+```
+F- statistic은 예측인자들을 고려했을 때에 우연 이상으로 반응 변수를 예측하는 정도이다. 예측인자가 하나인 경우는 키의 회귀계수에 대한  t-test 결과를 나타내게 된다.   
+
+**회귀모형의 유의성 검정**       
+회귀모형의 유의성을 검정하려고 하면 anova()를 이용하여 분산분석표를 만들어서 분석해야 한다. 
+
+```{r}
+anova(fit)
+```
+
+p값이 유의수준 0.05보다 매우 작으므로 회귀계수가 모두 0이라는 귀무가설을 기각할 수 있으므로 이 회귀식은 통계적으로 유의하다.   
+
+
+회귀분석 결과 보고  
+```{r}
+fit %>%
+  report::report()
+```
+
+
+
+
+```{r fig.width=6, fig.height=6}
+plot(weight ~ height, data=women)
+abline(fit, col=2)
+title(main="women의 키에 따른 몸무게 회귀분석")
+```
+이 그래프에서 키가 작을 때와 클때에는 회귀모델이 잘 안맞고 구부러져서 예측이 어려울 것이란 생각이 든다. (회귀계수에 대한 예측은 fitted()를 이용한다. 이것은 적절한 모델을 구성해야 설명이 가능하다.  
+
+#### 5.2.1.3. 다항회귀분석(ploynomal regression)
+
+
+그래프에서 회귀선이 한번 구브러지면 더 정확한 예측이 될 것이라고 생각이 든다.   
+이런 경우 1차식을 2차식으로 바꾸면 더 정확해질 것이다. 즉, 다항회귀는 한 개의 예측변수와 반응변수의 관계가 n차 다항식이면 더 유리한 경우에 적용한다.   
+
+![](F:/Rwork/04_Book/book1/regression1.png)
+ 회귀분석과 요약결과 
+
+```{r}
+fit2 <- lm(weight ~ height +I(height^2), data=women) 
+summary(fit2)
+```
+I()는 ()안의 내용을 수치적으로 계산하여 해석하라는 의미이다.   
+
+```{r}
+fit2 <- lm(weight ~ height +I(height^2), data=women) #I()는 포뮬러 지정시 ()의 값을 수식을 있는 그대로 수치로 계산하여 해석하라는 의미 
+summary(fit2)
+
+```
+
+회귀분석 결과보고   
+
+
+```{r}
+fit2 %>%
+  report::report()
+```
+
+
+
+
+조절된 그래프 
+
+```{r fig.width=6, fig.height=6}
+plot(weight ~ height, data=women)
+lines(women$height,fitted(fit2), col=2,lwd=2)
+title(main="women's regression의 fit model ")
+```
+그래프를 보면 변수에 대하여 제곱처리를 하여 다항함수 형태로 만들면 회귀선에 대하여 좀 더 예측이 잘 되는 모델을 구성할 수 있다.   
+
+
+#### 5.2.1.4. 모델의 적절성 (scatterplot 이용)
+
+이 모델이 적합한지 보는 방법으로 car{}에 들어있는 scatterplot()를 이용하여 시각적으로 확인하는 방법이다.   
+
+```{r fig.width=6, fig.height=6}
+#scatterplot
+library(car)
+car::scatterplot(weight ~ height, data = women,pch=19, cex=1.2,
+            regLine=list(method=lm,lty=2, lwd=3,col="tomato"),
+            smooth=list(smoother=loessLine, spread=FALSE, col.smooth="green3"),
+            main="women Age 30 ~39")
+
+```
+이 그래프를 보면 직선 모형보다 곡선모형이 더 잘맞는 것으로 보인다.   
+
+
+### 5.2.2. 다중회귀분석    
+
+1. 다중 회귀분석이란 
+
+다중회귀분석은 예측변수가 두 개 이상인 경우를 말한다. 다중 회귀분석에서 예측변수의 수가 많으면 모형 선택의 과정을 거치게 된다. 회귀모형에 포함시킬 예측변수들의 선택기준은 다음과 같다. 일반적으로 다항 회귀분석은 다중 회귀분석의 특별한 경우라고 생각하면 된다. 
+
+
+1. 반응변수(종속변수)와의 상관관계가 높아야 한다. 
+
+2. 선택된 예측변수(독립변수)들 사이에는 상관관계가 낮아야 한다. 
+
+예측변수간에 상관관계가 높다는 것은 중복된 정보를 모형에 넣는다는 말이 된다. 또한 서로 상관이 크기 때문에 영향력 있는 예측변수를 의미없게 만든다. 이러한 것을 다중 공선성(multicolinearity)라고 한다. 보통 다중 공선성 문제를 확인할 때 VIF(variance inflation factor)값을 확인하는데 이것이 4를 넘는 것은 다중공선성 문제를 점검할 필요가 있다는 것이며, 10을 초과하면 다중공선성이 존재하는 것으로 판단한다. 
+  
+
+참고로 다중회귀분석이나 다항회귀분석이 R에서 사용하는 fomular를 소개한다.  
+![](F:/Rwork/04_Book/book1/regression2.png)
+#### 5.2.2.1. 분석실습  
+Risk Factors Associated with Low Infant Birth Weight
+
+The birthwt data frame has 189 rows and 10 columns. The data were collected at Baystate Medical Center, Springfield, Mass during 1986.   
+
+```{r}
+str(birthwt)
+#1986년 미국의 Messachusetts주 Springfield의  Baystate Medical Center n=189
+#race 1= 엄마가 백인(white) 2 흑인, 3 그외의 경우 
+#race는 factor로 변환해야 함. 
+#bwt 반응변수
+#age:djaakskdl, lwt:마지막 생리기간의 엄마의 몸무게, race(인종), smoke(임신중 흡연)
+#ptl:과거 조산횟수, ht:고혈압의 기왕력, ui:uterine irritability 존재여부 
+```
+
+**회귀분석**    
+
+```{r}
+fitm <- lm(bwt ~ age+lwt+factor(race)+smoke+ptl+ht+ui, data=birthwt)
+summary(fitm)
+
+```
+
+```{r}
+fitm%>%
+  report::report()
+```
+
+**모델의 유의성 점검 anova**   
+
+anova분석을 해보면 age, ptl은 유의하지 않게 나온다.   
+```{r}
+#유의하지 않은 변수 제거를 위한 anova
+anova(fitm)
+
+```
+
+**모델의 유의성 점검 anova**   
+anova분석을 해보면 age, ptl은 유의하지 않게 나온다.    
+
+```{r}
+#다중공선성(multicolinerity)
+library(car)
+car::vif(fitm)
+
+```
+
+```{r}
+car::vif(fitm)>4
+```
+이렇게 결과에 대해서 알려주게 된다. 
+
+
+
+다중공선선 점검결과 이상없다. 
+
+
+```{r}
+mtcars.lm <-lm(mpg~ hp+wt+disp+ drat, data=mtcars)
+mtcars.lm  %>% summary()
+```
+
+회귀모형의 유의성 
+```{r}
+mtcars.lm %>% anova()
+```
+
+
+![](F:/Rwork/04_Book/book1/regression5.png)
+
+
+**VIF계산**
+다중공선성(多重共線性)문제(Multicollinearity)는 통계학의 회귀분석에서 독립변수들 간에 강한 상관관계가 나타나는 문제이다. 독립변수들간에 정확한 선형관계가 존재하는 완전공선성의 경우와 독립변수들간에 높은 선형관계가 존재하는 다중공선성으로 구분하기도 한다. 이는 회귀분석의 전제 가정을 위배하는 것이므로 적절한 회귀분석을 위해 해결해야 하는 문제가 된다.(출처: 위키백과)  
+다중공선선 문제는 회귀분석의 결과를 해석할 때 주의해야 하는 요소이다. 독립변수간에 영향을 미치고, 선형관계를 나타내는 것을 말한다. 보통 초보연구자들은 측정도구의 변수를 만들면서 이러한 문제를 잘 만들곤 하다. 예르 들어서 나이와 관련된 변수중 생일 등도 있고 연구대상이 중고등학생인데, 연령을 연결지으면 나타나는 문제들이다. 다중 회귀분석은 여러 변수가 투입되면 그 변수를 고정하여 일정하게 유지한 상태에서 관계를 측정하기 때문이다.   
+
+"다중공선성은 분산팽창지수(variance inflation facor,VIF)를 이용하여 측정한다. 이 것은 car패키지의 vif()를 이용하면 된다. 
+분산팽창지수는 다음과 같은 공식에 의해서 계산한다. 
+
+
+$$VIF=\frac{1}{1-R_i^2}$$
+예측변수 i를 새로운 종속변수로 가정하고 나머지 예측변수를 새로운 예측변수로 가정하여 회귀분석을 수행하여 나타난 R-square가 바로 $R_i^2$이다.  VIF는 1이상의 값을 갖게 되고, VIF=1이라는 것은 Ri2가 0이라는 의미가 된다. 그런 경우는 다중공선성이 전혀 없다는 의미이다. 그러나 만약  $R_i^2$이 증가하면 다른 예측변수들과의 상관관계가 클수록  VIF가 커지고, 다중공선성이 커지게된다.    
+  
+
+```{r}
+#regression 
+mtcars.lm <-lm(mpg~ hp+wt+disp+ drat, data=mtcars)
+
+#multicollinearity 
+library(car)
+vif(mtcars.lm)
+```
+
+```{r}
+vif(mtcars.lm)>4
+```
+
+직접계산하기 
+
+```{r}
+# hp의 vif
+summary(lm(hp~wt+disp+ drat, data=mtcars))
+
+```
+
+Multiple R-squared: 0.6545의 값을 이용하여 계산하면 된다. 결과는 위에서 구한 vif와 동일하다
+ 
+```{r}
+1/(1-0.6545)
+```
+ 
+상관관계 체크 
+```{r}
+# 상관관계 체크 
+MTC <-mtcars %>%
+  dplyr::select(mpg, hp, wt, disp, drat)
+library(PerformanceAnalytics)
+chart.Correlation(MTC)
+```
+
+
+
+
+**모델개선**     
+
+모델을 개선하기 위해서 유의하지 않은 두개의 변수 (0age, ptl)을 제거하여 다시 회귀모델을 만들어보자 
+
+```{r}
+fitm2 <- lm(bwt ~ lwt+factor(race)+smoke+ht+ui, data=birthwt)
+fitm2 %>% summary()
+```
+
+fitm2는 변수가 제거된 모델로 분석이 되었다. 그렇다면 anova를 이용하여 fitm과 fitm2를 비교해보자. anova(작은 모형, 큰 모형)순으로 넣어서 비교해 보자.   
+
+
+```{r}
+anova(fitm2)
+```
+
+
+
+
+
+
+**모델비교**   
+로그우도비 테스트 (Likelood Ratio test; LR)​
+
+로그우도비테스트는 두개의 모형의 우도(가능도)의 비율을 계산해서 두 모형의 우도가 유의하게 차이나는지 검정하는 방법이다. 모수로부터 특정한 현상이 나타나고 그것을 관찰하는 것을 확률적 개념이라고 한다. 우도(likehood)는 주어진 현상이 나타날 가능성이 가장 높은 모수를 거꾸로 추적하는 방법이고 이를 최대우도법이라고 한다.   
+
+모델을 비교하는 방법으로는 로그우도비 테스트(anova()을 이용)하여 유의한 차이가 있는지 확인하여 간명성을 유지하는 모델을 선택한다. 로그우도비 테스트는 분산분석을 이용하여 비교하는 방법으로 모델이 중첩이 된 경우만 비교가 가능하다. 
+
+
+anova()를 이용한 분석   
+anova()함수는 wald test이다. Compute analysis of variance (or deviance) tables for one or more fitted model objects.
+
+ 참고: Chambers, J. M. and Hastie, T. J. (1992) Statistical Models in S, Wadsworth & Brooks/Cole
+
+```{r}
+anova(fitm2, fitm)
+```
+이렇게 두 개의 모형을 비교해보면 F test결과  p값이 0.792로 매우크다.   
+조절된 모형의 anova이다.   
+
+ 
+**AIC 이용한 비교**   
+
+AIC는 Akaike information criterian을 말하면 이 지표는 모델의 적합도와 parameter개수를 고려하는 모델로, 그 값이 작은 것이 더 적합하고 우수한 모델로 평가한다. AIC()함수를 이용하여 비교한다. 
+
+```{r}
+AIC(fitm2, fitm)
+```
+
+
+
+```{r}
+fitm2 %>%
+  report::report()
+```
+R^2설명력이 24%에 해당한다. 통제가 쉽지않는 변인이 많은 연구에서는 작은 수는 아니다.  
+
+```{r}
+# sjPlot::tab_model(fitm, fitm2,
+#                   show.ci = FALSE, 
+#             show.df = FALSE,
+#             show.aic = TRUE,
+#             show.loglik = TRUE,
+#             p.style = "star")
+
+stargazer::stargazer(fitm2,fitm, type="text")
+
+
+```
+
+
+
+
+
+
+### 5.2.3.로지스틱 회귀분석   
+ \
+ \
+ 
+
+로지스틱 회귀분석은 종속변수가 이항변수인 경우 사용한다. 다른 포스팅을 통하여 이미 설명한 내용들이 많아서 실행하는 것을 중심으로 설명하였다. 로지스틱 회귀분석을 회귀분석의 결과인 종속변수가 0아니면 1이기 때문에 로그변환한 수식을 활용한다.  이때 오즈비을 사용한다. 
+오즈비는 $odd = \frac{p}{1-p}$로 계산되는데, p는 사건이 일어날 확률이므로 1-p는 사건이 일어나지 않을 확률이다. 
+예를 들어서 남여 10명이 있다고 하자. 남자는 4명, 여자는 6명이 있다면 전체중 남자의 비율은 0.4가 된다.  그런데 여자와 비교한 남자의 수는 4/6=2/3이 된다. 이러한 것을 오즈비라고 생각하면 될듯 하다.   
+
+colon 데이터는 colom cancer 1858명의 데이터이다. 
+```{r}
+library(survival)
+str(colon)
+```
+na.omit() 함수는 행 단위로 어떤 결측치라도 있으면 이 행을 제거하고 남은 데이터를 반환한다.   
+
+```{r}
+colon <- na.omit(colon)
+
+```
+
+Format
+id:	id  
+study:	1 for all patients  
+rx:	Treatment - Obs(ervation), Lev(amisole), Lev(amisole)+5-FU  
+sex:	1=male  
+age:	in years  
+obstruct:	obstruction of colon by tumour   
+perfor:	perforation of colon   
+adhere:	adherence to nearby organs  
+nodes:	number of lymph nodes with detectable cancer   
+time:	days until event or censoring   
+status:	censoring status  
+differ:	differentiation of tumour (1=well, 2=moderate, 3=poor)  
+extent:	Extent of local spread (1=submucosa, 2=muscle, 3=serosa, 4=contiguous structures)   
+surg:	time from surgery to registration (0=short, 1=long)   
+node4:	more than 4 positive lymph nodes   
+etype:	event type: 1=recurrence,2=death     
+
+**로지스틱 회귀 분석**     
+
+회귀분석은 glm()을 이용한다. 
+종속변수 ~ 독립변수+독립변수2+..., fmaily=binomial을 추가하여 로지스틱회귀분석을 하는 것을 체크하다. 여기에는 포아송등 다양한 변수가 들어갈 수 있다.   
+
+```{r}
+result <- glm(status ~rx+sex+age+obstruct+perfor+adhere+nodes+differ+extent+surg,
+              family= binomial, data=colon)
+summary(result)
+
+```
+
+stepwise logistic regression   
+
+```{r}
+#stepwise logistic regression 
+reduced.model = step(result)
+```
+
+```{r}
+summary(reduced.model)
+
+```
+
+```{r}
+stargazer::stargazer(reduced.model, type= "text")
+```
+
+**오즈비**   
+오즈비는 그냥 계산해도 되지만 moonBook패키지를 사용하면 더 쉽게 계산된다. 
+여담이지만 문건웅 교수님이 개발한 moonBook, mytable, ztable은 분석을 하고 사용하면 할수록 대단하고 고맙다는 마음이 들게 만드는 것 같다.    
+
+```{r}
+library(moonBook)
+extractOR(reduced.model)
+
+```
+
+**오즈비 plot**    
+오즈비를 시각화하여 보여주는 도구이다. 
+moonBook packages에 있는 도구를 사용하면 된다.    
+
+```{r fig.width=8, fig.height=6}
+ORplot(reduced.model, type=2,show.OR = FALSE, show.CI = TRUE,
+       pch=15, lwd=3,
+       col=c("blue","red"),
+       main="plot for odds ratios if reduced model")
+```
+
+오즈비 플롯   
+
+```{r fig.width=8, fig.height=6}
+ORplot(reduced.model, type = 3, show.CI = TRUE, 
+       main="plot for odds ratios if reduced model")
+
+```
+
+
 
 # 6. 응용통계분석(1)
 
@@ -5788,7 +6497,70 @@ ggpairs(mtcars[,1:7],
 
 ## 6.2. 매개효과 분석
 
-## 6.3. 조절효과 분석
+## 6.3. 조절효과 분석(상호작용효과분석)
+
+
+![](F:/Rwork/04_Book/book1/regression3.png)
+
+
+![](F:/Rwork/04_Book/book1/regression4.png)
+
+```{r}
+fit  = lm(mpg ~ hp+wt+hp:wt, data= mtcars)
+summary(fit)
+
+```
+마력(hp)과 무게(wt)의 상호작용항은 유의하였다.   
+
+```{r fig.width=7, fig.height=7}
+library(effects)
+m<- round(mean(mtcars$wt),1);m
+s <- round(sd(mtcars$wt),1);s
+
+plot(effect(term="hp:wt", mod=fit, xlevels=list(wt=c(m-s,m,m+s))),
+lines=list(multiline=TRUE, lwd=2,lty=c(3,2,1),
+col=c("red","blue","darkgreen")),
+main="interaction plot For hp and wt")
+
+```
+차량의 무게(wt)가 증가할 수록 상호작용효과는 나타나지 않고 있다.   
+
+predict3d패키지를 이용하면 더 명확한 그래프를 더 쉽게 얻어진다.  
+
+이 그래프에서는 상호작용 효과가 나타나는 기울기에서 볼 수 있듯이 무게가 증가함에 따라서 연비에 대한 상호작용효과는 거의 나타나지 않음을 알 수 있다. 
+
+```{r}
+library(predict3d)
+ggPredict(fit)
+
+
+```
+상호작용을 탐색하려면 조절변수wt를선택하여 mpg에대한 hp의 조건부 효과를 구해야 한다. 
+차후에 자세히 다시 한번 설명하기로 하고 이를 조건부로 구한 것을 보도록 하자.  
+조절변수를 넣어서  표준오차의 추정량을 표시하였다.  
+특정한 wt의 값에서 $\theta_{(X->Y)} = 0$ 을 귀무가설로 검증하게 된다. $df_{residuals}$ , t분포에 따르기 때문에 t분포에서 p값을 구하여 유의성을 확인한다.    
+
+$$\theta _{X\ ->Y}\ =\sqrt{se_{b1}^2+\left(2wt\right)COV_{b1b3}+wt^2se_{b3}^2}$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 6.4. Process Macro
 

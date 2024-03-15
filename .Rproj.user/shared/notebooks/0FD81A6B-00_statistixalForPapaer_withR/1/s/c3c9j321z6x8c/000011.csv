@@ -1,7 +1,0 @@
-"0","apply(Titanic, MARGIN = c(1,4), sum)%>%   "
-"0","  barplot(col =2:5, ylim =c(0, 800), beside=TRUE,"
-"0","          main=""Survivor analysis by Tatinic class"","
-"0","          legend.text = rownames(apply(Titanic, "
-"0","                                       MARGIN = c(1,4), sum)) )%>% "
-"0","  text(labels = apply(Titanic, c(1,4), sum),"
-"0","       y =  apply(Titanic, c(1,4), sum)+ 40, cex = 0.8)"

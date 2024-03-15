@@ -1,7 +1,0 @@
-"0","y <- c(0, 0, 0, 3, 4, 4, 4, 4)"
-"0",""
-"0","fct_count(factor(y))%>% "
-"0","  ggplot(aes(x = f, y = n))+"
-"0","  geom_bar(stat = ""Identity"")+"
-"0","  geom_text(aes(label = n), vjust = -.5)+"
-"0","  ylim(0, 5)"

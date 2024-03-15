@@ -1,5 +1,0 @@
-"0","#변수선별"
-"0","SATS1 = sats|> select(sux1:sux5)"
-"0","#역코딩 진행 "
-"0","revcode(SATS1, n=8, ""sux1"", ""sux3"", ""sux2"", ""sux4"", ""sux5"") |>"
-"0","  head(10)"

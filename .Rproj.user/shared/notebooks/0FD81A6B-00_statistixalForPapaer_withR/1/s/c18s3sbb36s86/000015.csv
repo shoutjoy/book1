@@ -1,5 +1,0 @@
-"0","apply(Titanic, 1, sum) %>%   "
-"0","  barplot(col =2:5, ylim =c(0, 980))%>% "
-"0","  text(labels = apply(Titanic, 1, sum),"
-"0","       y =  apply(Titanic, 1, sum) + 50)"
-"0",""

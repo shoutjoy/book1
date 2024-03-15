@@ -1,2 +1,0 @@
-"0","reshape2::dcast(df_long, variable ~ type, mean) |>"
-"0","  dplyr::mutate_if(is.numeric, round, 2)"

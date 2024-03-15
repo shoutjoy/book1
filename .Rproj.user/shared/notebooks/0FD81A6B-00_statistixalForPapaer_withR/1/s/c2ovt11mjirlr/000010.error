@@ -1,1 +1,0 @@
-{"frames":[{"func":"factanal(olympic$tab, factors = 2, scores = \"regression\", rotation = \"oblimin\")","file":"","line_number":0,"end_line_number":0,"character_number":0,"end_character_number":0}],"message":"에러: 객체 'olympic'를 찾을 수 없습니다\n"}
