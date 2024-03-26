@@ -22,7 +22,8 @@ knitr::opts_chunk$set(
 	#word_document
 )
   
-setwd("F:/Rwork/04_Book/book1")
+# setwd("F:/Rwork/04_Book/book1")
+setwd("E:/Rwork/04_Book/book_git/book1")
 
 library(rstatix)
 # devtools::install_github("shoutjoy/jjstat")
@@ -3296,23 +3297,24 @@ df_chi0 %>%  mutate(
 
 
 x는 범주의 개수를 담고있는 벡터나 테이블 자료   
-P는 영가설하 확률  
+P는 영가설하 확률을 나타내고 있다. 멘델의 가설에서 가져온 결과이다.  
+위에서 수기계산한 것을 이번에는 chisq.test() or jjstat::chisq_test()를 이용하여 계산해보자.  
 ```{r}
-chisq.test(x= c(315, 101, 108, 32), p= c(9,3,3,1)/16)
+
+chisq_test(x= c(315, 101, 108, 32), p = c(9,3,3,1)/16)
 ```
 
-
+report패키지는 통계적 분서결과에 대한 결과보고를 APA양식에 맞추어서 보고해주는 패키지이다. 이 패키지를 이용하여 결과를 나타내보자. 
 
 ```{r}
-chisq.test(x= c(315, 101, 108, 32), p= c(9,3,3,1)/16)%>%
-  report::report() 
+chisq_test(x= c(315, 101, 108, 32), p= c(9,3,3,1)/16) %>% report::report() 
 ```
 
 
 
 ### 4.1.2. 동질성 검정과 독립성 검정   
 
-두 범주형 자료에 대한 검정으로 $r \times c$분할표(contingency table)를 만들어서 검정한다.  
+두 범주형 자료에 대한 검정으로 $r \times c$분할표(contingency table)를 만든후 이를 이용하여 chisq.test를 이용하여 동질성검정과 독립성 검정을 시행한다.   
 
 **동질성 검정 (Homogeneity Test)**:  
 
@@ -3328,7 +3330,7 @@ chisq.test(x= c(315, 101, 108, 32), p= c(9,3,3,1)/16)%>%
 
 #### Perform homogeneity test  
 
-동질성 검정을 위해서 스마트폰(애플, 삼성, 회웨이)의 폰 사용이 연령별로 동질한지 검정해보자.   
+동질성 검정을 위해서 스마트폰(애플, 삼성, 회웨이)의 폰 사용이 연령별로 동질한지 검정해보자. 각 회사의 제품에 대한 사용경험을 10대, 20대, 30대의 모집단 그룹에서 추출한 결과이다. 그룹간의 분포가 동일한지 검정해보자.  
 
 가설은 아래와 같다.   
   $H_0$ (귀무 가설): 그룹 간의 분포는 동일하다.
