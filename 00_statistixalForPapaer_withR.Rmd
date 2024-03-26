@@ -2856,6 +2856,9 @@ bind_alpha_table( stat_onl,
 |d2  |alpha = 0.699, 95%CI[0.55, 0.8]  |satisfy         |      0.4593506|
 |d3  |                                |fatigue_inverse |      0.8049024|
 
+
+
+
 #### 3.2.1.2. 이분형 변수의 신뢰도 측정  
 
 측정한 항목들이 연속형 변수가 아니라 이분형변수 (0, 1)로 코딩된 변수일 경우에는 KR20(Kuder-Richardson formula 20)이라고 한다. 측정문항들이 이론적으로 위계적 관계를 가지는 경우 뢰빙거의 H(Loveinger's coefficient H)를 사용한다(Mokken, 1971; Sijtsma & Molenaar, 2002; Sijtsma & Van der Ark, 2017).  
@@ -2864,6 +2867,7 @@ mtcars의 am, vs을 위계적 데이터라고 가정하고, 이 데이터를 사
 
 ```{r}
 library(mokken)
+data(mtcars)
 MTC <- mtcars  #분석데이터
 MTC$am <- as.numeric(MTC$am )  # numeric변수로 변환 
 MTC$vs <- as.numeric(MTC$vs )  # numeric변수로 변환
@@ -3206,20 +3210,303 @@ semPaths(fa, what="est", residuals=FALSE,
 
 # 4. 차이분석   
 
+차이분석은 카이제곱, t.test, 분산분석(ANOVA)에 이르는 전반적인 과정을 설명한다. 각각의 통계적 분석법에 대한 수식및 수기계산 그리고, 함수를 활용하여 가설 검정을 하는 과정을 설명하고자 한다. 
+독자는 계산과정에서 복잡하다고 느끼면 그 부분을 스킵(skip)하고 실제 함수를 이용하는 과정을 공부해도 된다. 다만, 분석의 노하우가 더 쌓이려면 분석하는 절차와 내용을 익히는 것이 중요함을 잊어서는 안된다.   
+\
+\
 
 
 
 ## 4.1.  Chi-square test  
 
+
+
+ chisq.test performs chi-squared contingency table tests and goodness-of-fit tests
+
+     chisq.test(x, y = NULL, correct = TRUE,
+             p = rep(1/length(x), length(x)), rescale.p = FALSE,
+             simulate.p.value = FALSE, B = 2000)
+\  
+
+
+
+### 4.1.1. 적합도 검정   
+
+
+범주의 각 수준별 비율을 검정하는 방법이다.    
+
+$$ X^2 = \sum_{i=1}^{k} \frac{(O_i - E_i)^2}{E_i}  \sim  \chi^2(k-1)$$
+$O_i$ : Observed frequency counts in each  category   
+$E_i$ : Expected frequency counts in each  category   
+$k$ : number of categrory    
+$df$: degree of freedom 모집단을 k개의 범주형 자료로 나누는 검정 
+
+
+카이제곱을 구하는 과정이다. 이 과정을 직접 계산하려면 다음과 같은 과정을 거친다.  
 \
-독립성 검정과 동질성 검정  
+
+'차례로 생각해보면 개수나 횟수를 나타내는 데이터에서 기대도수를 구한 후에 관찰도수에서 기대소수를 뺀것을 제곱하고 기대도수로 나누어서 합을 구하면 카이제곱이 나오는 것이다.'
+아마도 수식을 말로 쓰니 와닿지 않을 수도 있다. 카이제곱 함수를 이용하면 금새 구해지는 과정이지만, 과정을 익히는 것도 중요하니 한번 과정대로 해보자.   
+
+
+먼저 Mendel(1865)의 데이터와 기대비율(유전형질)을 만들어보자. 멘델은 2세대 콩의 기대비율을 9:3:3:1로 설정하였다.   
 
 ```{r}
-table(mtcars$am, mtcars$vs) %>%
-  chisq.test()
+
+## 데이터: Mendel(1865)의 유전법칙 : 형질별 콩의 개체수 
+df_chi = data.frame(
+   observed = c(315, 101, 108, 32) ,
+   p = c(9,3,3,1) ) # 기대비율 
+df_chi
+```
+기대값을 구할 때에는 영가설로 제시된 기대비율을 각각을 기대비율의 합으로 나눈후에 관찰된 값(observed)의 합과 곱하여 구한다.  
+
+$$E_{ij} =  \frac {Row\;Total_i \times Column \;Total_j} {n} $$
+\
+
+아래는 비율을 ratio로 하고 frac는 분수로 보여주기 위해서 구성한 것이다. fracture패키지를 이용하여 나타내었다.  
+```{r}
+# 기대도수 구하기 
+df_chi0 <- df_chi %>% mutate(
+                   ratio = p/ sum(p),
+                   frac = fracture::fracture(p/ sum(p)),
+                   expected =  sum(observed)*ratio)
+df_chi0
+
+```
+이제 여기에 관찰도수 - 기대도수, 관찰도수-기대도수의 제곱, 기대도수로 나눈 값, 카이제곱을 데이터속에 순서대로 구해보자.
+```{r}
+df_chi0 %>%  mutate(
+  `O-E` = observed - expected,
+  `(O-E)^2` = `O-E`^2 /expected,
+  chisq = sum(`(O-E)^2`)
+)
+```
+이과정을 통해서 구한 카이제곱 값은 $\chi^2 = 0.470024$이다. 
+유의수준과 기각역 및 유의확률을 구해보자.  
+카이제곱값이 0.47002이고 자유도는 $df = 4-1 = 3$이이므로 $p$값은 `pchisq()`함수를 이용하여 다음과 같이 구한다.    
+
+```{r}
+1-pchisq(0.47002, df =3)
+```
+
+이 결과는 카이제곱분석결과 대립가설을 기각하고 영가설을 채택한다는의미가 된다.   
+
+
+
+
+x는 범주의 개수를 담고있는 벡터나 테이블 자료   
+P는 영가설하 확률  
+```{r}
+chisq.test(x= c(315, 101, 108, 32), p= c(9,3,3,1)/16)
 ```
 
 
+
+```{r}
+chisq.test(x= c(315, 101, 108, 32), p= c(9,3,3,1)/16)%>%
+  report::report() 
+```
+
+
+
+### 4.1.2. 동질성 검정과 독립성 검정   
+
+두 범주형 자료에 대한 검정으로 $r \times c$분할표(contingency table)를 만들어서 검정한다.  
+
+**동질성 검정 (Homogeneity Test)**:  
+
+목적: 동질성 검정은 한 가지 범주형 변수를 가진 여러 개의 모집단에서 데이터를 수집하여, 그룹 간의 분포가 동일한지를 확인하는 검정하는 방법을 말한다.  
+예시: 여러 지역에서 다른 시기에 같은 조사를 통해 데이터를 수집하여, 그룹 간의 분포가 동일한지를 확인할 때 사용된다.   
+  
+**독립성 검정 (Independence Test)**:   
+
+목적: 독립성 검정은 두 개의 범주형 변수 간의 관계를 확인하는 검정입니다. 두 변수가 서로 독립적인지 아니면 연관성이 있는지를 판단한다.   
+예시: 성별과 선호하는 음료 종류 간의 관계를 확인하거나, 투표 결과와 지역 간의 관계를 확인할 때 사용된다.   
+
+요약하면, 동질성 검정은 여러 그룹 간의 분포를 비교하고, 독립성 검정은 두 변수 간의 연관성을 확인하는 것이다.   
+
+#### Perform homogeneity test  
+
+동질성 검정을 위해서 스마트폰(애플, 삼성, 회웨이)의 폰 사용이 연령별로 동질한지 검정해보자.   
+
+가설은 아래와 같다.   
+  $H_0$ (귀무 가설): 그룹 간의 분포는 동일하다.
+  $H_1$ (대립 가설): 그룹 간의 분포는 다르다
+
+데이터는 아래와 같다.   
+
+```{r}
+# Example data for homogeneity test (smartphone usage by age group)
+homogeneity_data <- cbind(
+   "Apple" = c(129, 195, 185),
+  "Samsung" = c(185, 192, 126),
+  "Huawei" = c(141, 194, 159)
+)%>%`rownames<-`(c("10s", "20s", "30s"))
+
+# homogeneity_data
+homogeneity_data %>%addmargins()
+
+```
+이 교차표(contigency table)에 chisq.test을 통해서 확인해보자.  
+
+
+```{r}
+# Print results
+chisq.test(homogeneity_data)
+```
+동질성검정을 위한 카이제곱 분석 결과를 report패키지를 이용하여 해석해보자.   
+
+```{r}
+chisq.test(homogeneity_data)%>%report::report()
+```
+통게적으로 유의한 결과가 나와 영가설을 기각할수 있다.   
+
+
+
+
+#### 독립성 검정 
+독립성 검정은 서울대, 고려대, 연세대에 합격한 남녀비율이 독립적인 확인하는 데이터이다.  
+가설은 아래와 같다. 
+$H_0$ (귀무 가설): 성별과 합격자수 결과는 독립적이다.
+$H_1$ (대립 가설): 성별과 합겹자수 결과는 연관성이 있다.
+
+```{r}
+# Example data for independence test (admissions by gender)
+
+
+independence_data <- cbind(
+  "Male Admissions" = c(96, 75, 71),
+  "Female Admissions" =  c(95, 51, 55)
+)%>%`rownames<-`(c("Seoul_National ", "Korea", "Yonsei"))
+
+independence_data%>% addmargins()
+
+```
+카이제곰을통해서 독립성 검정이 가능하다. 
+두 변수의 독립성을 검정해보자.   
+
+```{r}
+# Perform independence test
+chisq.test(independence_data)
+```
+다음은 
+```{r}
+chisq.test(independence_data) %>% report::report()
+```
+
+
+보통 $2 \times 2$형태의 검정에서 기대도수를 구하는 방법을 적용하여 다음과 같이 함수를 만들어서 분석해볼 수도 있다.  
+
+
+```{r}
+# Define a function: Convert numbers to scientific notation or common number representations
+format_number <- function(number, n=6) {
+    # Use scientific notation when there are more than 18 decimal places
+    if (nchar(sub("\\d+\\.", "", as.character(number))) >= n) {
+        return(format(number, scientific = TRUE, digits = 3))
+    } else {
+        return(format(number, scientific = FALSE, digits = 5))
+    }
+}
+
+chisqTest <- function(Obs, correct=FALSE, digits = 3, cat=TRUE) {
+     Expected <- outer( rowSums(Obs), colSums(Obs)) /sum(Obs) #outer: 성분끼리의 곱 
+     
+     if(correct){
+       
+       cat("\n  Pearson's Chi-squared test with Yates' continuity correction \n")
+         chisquare <- sum(  (abs(Obs- Expected) - 0.5  )^2/ Expected  ) 
+     }else{
+      cat(" \n  Pearson's Chi-squared test\n")
+       chisquare <- sum((Obs- Expected)^2/Expected)  #chi square 계산 
+     }
+     
+     
+     
+     df = (ncol(Obs)-1)*(nrow(Obs)-1) #자유도 
+     
+     p_value = 1- pchisq(chisquare, df) #p값      
+   
+     statistic <- cbind(Chisq = chisquare, df, p_value)
+     
+     rownames(statistic) = c("statistic")
+     statistic<- statistic %>% jjstat::p_mark_sig("p_value") #%>% 
+      statistic$p_value <- format_number(statistic$p_value) %>%as.numeric()
+      #  jjstat::Round(digits = digits)
+    #  statistic
+     if(cat){
+     cat("\n", paste0( "X-squared = ",round(chisquare, digits), 
+                        ", df = ",df, ", p.value = ", 
+                        statistic$p_value," ", statistic$sig), "\n\n")
+     }else{
+     res2 = statistic
+     res2
+     }
+              
+}
+
+
+
+```
+
+```{r}
+# independence_data %>% margin.table(margin = 1)
+
+independence_data %>% margin.table(margin = 2)/margin.table(independence_data)
+
+
+```
+
+
+
+```{r}
+chisqTest(independence_data)
+```
+```{r}
+ MASS::caith %>% chisqTest()
+```
+
+
+```{r}
+ MASS::caith %>% chisqTest(correct = TRUE)
+```
+
+
+
+
+독립성 검정과 동질성 검정  
+
+```{r}
+#R base
+table(mtcars$am, mtcars$vs) %>%
+  chisq.test()
+```
+  
+R함수에서는 X-squared = 0.34754가 나왔고, 우리가 만든 함수에서는 X-squared = 0.907가 나왔다. R함수에서의 값과 우리가 만든 함수의 값이 다르다. 
+그 이유는 셀이 기대값이 너무 작은 경우에는 correct를 조절해주어야 한다. 
+
+```{r}
+table(mtcars$am, mtcars$vs) %>%  chisqTest()
+```
+
+
+다시한번 조절해서 해보자. 
+```{r}
+table(mtcars$am, mtcars$vs) %>%  chisqTest(correct=TRUE)
+```
+
+혹은 R베이스에서 correct =FALSE로 해도 된다. 
+```{r}
+
+table(mtcars$am, mtcars$vs) %>%
+  chisq.test(correct=FALSE)
+```
+  
+  \
+  \
+  \
+  
 
 
 ### 4.1.1. 일표본 t검정(onesample t.test)
