@@ -1,5 +1,0 @@
-"0","factor.plot(fa, labels=colnames(olympic$tab), pch=20, pos=4, title=""Factor Plot"")
-"
-"2","factor.plot(fa, labels = colnames(olympic$tab), pch = 20, pos = 4, 에서 다음과 같은 에러가 발생했습니다:
-  함수 ""factor.plot""를 찾을 수 없습니다
-"
