@@ -6631,6 +6631,8 @@ car::scatterplot(weight ~ height, data = women,pch=19, cex=1.2,
 
 참고로 다중회귀분석이나 다항회귀분석이 R에서 사용하는 fomular를 소개한다.  
 ![](F:/Rwork/04_Book/book1/regression2.png)
+
+
 #### 5.2.2.1. 분석실습  
 Risk Factors Associated with Low Infant Birth Weight
 
@@ -6925,6 +6927,27 @@ ORplot(reduced.model, type = 3, show.CI = TRUE,
 ```
 
 
+## 5.3. 회귀계수의 차이 검증 Wald test
+
+회귀계수를 비교하는 방법을 알아보고자 한다. 회귀분석후에 분석된 결과를 보면서 
+
+```{r}
+lm(mpg ~ hp+ wt+ disp, mtcars) %>% summary()
+```
+
+```{r}
+lm(mpg ~ hp+ wt+ disp, mtcars) %>% 
+  ztest_df(row1= 2,row2 =3)
+```
+
+```{r}
+wald_test(1.311, 1.628, 1.311-0.366,  -2.732, type="res")
+```
+
+```{r}
+wald_test(1.311, 1.628, 1.311-0.366,  -2.732, type="res2")
+```
+
 
 # 6. 응용통계분석(1)
 
@@ -7001,7 +7024,78 @@ $$\theta _{X\ ->Y}\ =\sqrt{se_{b1}^2+\left(2wt\right)COV_{b1b3}+wt^2se_{b3}^2}$$
 
 # 7. 구조방정식 모형
 
+
+
+
+### 7.1. 데이터의 구조의 적합성 및 기술 통계 
+
+데이터 분석을 위해서는 
+```{r}
+sats<- jjstat::sats
+str(sats)
+```
+
+```{r}
+#전체의 평균을 구해보는 함수 
+sats %>% summarise_all(mean)
+```
+tidyvers에는 purrr이라는 패키지가 포함되어있다. for문을 이용하여 반복을 처리하는 것에 대하여 for를 사용하지 않고도 반복을 처리하는데 특화된 패키지이다. 
+이중에 discard()는 지정한 옵션을 제외하라는 것으로 사용되고, keep()는 지정한 것을 사용하는 것으로 사용되며, map_dbl(x, f)은 반복문을 처리하는 함수이다. f는 함수인데, 직접 지정하는 것도 가능하다.   
+
+
+이제 numeric변수만을 추출해서 구해보자. 
+```{r}
+# method 1
+sats%>%
+  discard(is.factor) %>%
+  map_dbl(mean) 
+```
+  
+keep()를 이용하는 방법이다. 
+```{r}
+# method 1
+sats%>%
+  keep(is.numeric) %>%
+  map_dbl(mean) 
+```
+
+
+여러가지 통계치를 한번에 얻으려면 jjstat패키지의 mysummary를 이용한다.   
+먼저 데이터에서 numeric변수를 keep()를 이용하여 추출한 후에 적용하면 되는데, 이미 변수들이 선택되었으므로 모든 변수의 이름을 colnames(.)으로 한다. '.' 은 all을  나타낸다(at tidyverse). Round{jjsat}는 chr, factor변수를 제외한 나머지 numeric변수만을 선택하여 round처리를 해주는 함수이다.   
+
+
+
+```{r}
+sats%>%
+  keep(is.numeric) %>%
+  mysummary(colnames(.)) %>%
+  Round(2)
+```
+mysummary에서 all=TRUE로 하면 numeric변수만을 찾아서 모든 변수에 대한 기술통계를 나타내준다.   
+
+
+```{r}
+#
+sats%>% mysummary(all=TRUE) 
+
+```
+
+이렇게 데이터의 구조와 기술통계를 확인하는 것은 데이터가 분석을 하기에 적합한 정규성을 가지고 있는지 확인하기 위함이다.   
+
+
+
+
+
+
+
+
+## 7.2. SEM을 이용한 회귀 
+
+
 # 8. PLS 구조 방정식 모형
+
+
+
 
 # 9. 혼합모형(다층모형) 분석  
 
